@@ -3,7 +3,9 @@ package main
 import (
 	"belajar-golang-api/app"
 	"belajar-golang-api/controller"
+	"belajar-golang-api/exception"
 	"belajar-golang-api/helpers"
+	"belajar-golang-api/middleware"
 	"belajar-golang-api/repository"
 	"belajar-golang-api/services"
 	"net/http"
@@ -28,9 +30,11 @@ func main() {
 	router.PUT("/api/categories/:categoryId", categoryController.Update)
 	router.DELETE("/api/categories/:categoryId", categoryController.Delete)
 
+	// Panic Handler untuk Error Handling
+	router.PanicHandler = exception.PanicHandler
 	server := http.Server{
 		Addr:    ":8000",
-		Handler: router,
+		Handler: middleware.NewAuthMiddleware(router),
 	}
 	err := server.ListenAndServe()
 	helpers.PanicIfError(err)

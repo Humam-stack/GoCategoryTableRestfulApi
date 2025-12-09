@@ -14,6 +14,7 @@ type CategoryRepositoryImpl struct {
 func NewCategoryRepository() CategoryRepository {
 	return &CategoryRepositoryImpl{}
 }
+
 func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category {
 	Sql := "insert into category(name) values(?)"
 	result, err := tx.ExecContext(ctx, Sql, category.Name)
@@ -33,19 +34,20 @@ func (repository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx
 }
 
 func (repository *CategoryRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, category domain.Category) {
-	Sql := "Delete from category where id = ?"
+	Sql := "delete from category where id = ?"
 	_, err := tx.ExecContext(ctx, Sql, category.Id)
 	helpers.PanicIfError(err)
 }
 
-func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, catevoryId int) (domain.Category, error) {
-	Sql := "select id,name from category where id = ?"
-	result, err := tx.QueryContext(ctx, Sql, catevoryId)
+func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, categoryId int) (domain.Category, error) {
+	Sql := "select id, name from category where id = ?"
+	result, err := tx.QueryContext(ctx, Sql, categoryId)
 	helpers.PanicIfError(err)
+	defer result.Close()
 
 	category := domain.Category{}
 	if result.Next() {
-		err := result.Scan(&catevoryId, &category.Name)
+		err := result.Scan(&category.Id, &category.Name)
 		helpers.PanicIfError(err)
 		return category, nil
 	} else {
@@ -54,18 +56,17 @@ func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.
 }
 
 func (repository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []domain.Category {
-	Sql := "select * from category"
+	Sql := "select id, name from category"
 	rows, err := tx.QueryContext(ctx, Sql)
 	helpers.PanicIfError(err)
+	defer rows.Close()
 
 	var categories []domain.Category
 	for rows.Next() {
 		category := domain.Category{}
 		err := rows.Scan(&category.Id, &category.Name)
 		helpers.PanicIfError(err)
-
 		categories = append(categories, category)
-
 	}
 	return categories
 }

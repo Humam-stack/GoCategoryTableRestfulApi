@@ -1,6 +1,7 @@
 package services
 
 import (
+	"belajar-golang-api/exception"
 	"belajar-golang-api/helpers"
 	"belajar-golang-api/model/domain"
 	"belajar-golang-api/model/web"
@@ -51,7 +52,9 @@ func (c *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUp
 	defer helpers.PanicRollBack(tx)
 
 	category, err := c.CategoryRepo.FindById(ctx, tx, request.Id)
-	helpers.PanicIfError(err)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 
 	category.Name = request.Name
 	category = c.CategoryRepo.Save(ctx, tx, category)
@@ -65,9 +68,12 @@ func (c *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) {
 	defer helpers.PanicRollBack(tx)
 
 	category, err := c.CategoryRepo.FindById(ctx, tx, categoryId)
-	helpers.PanicIfError(err)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 
 	c.CategoryRepo.Delete(ctx, tx, category)
+
 }
 
 func (c *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) web.CategoryResponse {
@@ -76,7 +82,9 @@ func (c *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) web.
 	defer helpers.PanicRollBack(tx)
 
 	category, err := c.CategoryRepo.FindById(ctx, tx, categoryId)
-	helpers.PanicIfError(err)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
 
 	return helpers.ToCategoryResponse(category)
 }
